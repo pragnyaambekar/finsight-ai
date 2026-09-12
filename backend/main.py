@@ -1,6 +1,8 @@
 import uuid
 from fastapi import FastAPI, UploadFile, HTTPException
 from storage import save_file
+from pydantic import BaseModel
+from llm_client import ask_llm
 
 app = FastAPI(title="FinSight AI", version="0.1.0") 
 
@@ -48,3 +50,14 @@ async def upload_document(file: UploadFile):
         "size_bytes": len(contents),
         "status": "uploaded",
     }
+class QuestionRequest(BaseModel):
+    question: str
+
+@app.post("/ask")
+async def ask(request: QuestionRequest):
+    try:
+        answer = ask_llm(request.question)
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    return {"question": request.question, "answer": answer}
