@@ -16,4 +16,5 @@ dist/
 # IDE
 .vscode/
 .idea/
-backend/storage/uploads/
+backend/storage/uploads
+backend/storage/chroma/

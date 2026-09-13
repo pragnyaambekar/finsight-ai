@@ -3,6 +3,12 @@ from fastapi import FastAPI, UploadFile, HTTPException
 from storage import save_file
 from pydantic import BaseModel
 from llm_client import ask_llm
+from vector_store import search_similar_chunks, add_document_chunks
+from llm_client import answer_with_context
+from document_processor import extract_text_from_pdf, chunk_text
+
+
+
 
 app = FastAPI(title="FinSight AI", version="0.1.0") 
 
@@ -39,16 +45,28 @@ async def upload_document(file: UploadFile):
     if len(contents) == 0:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-    # 4. Generate a unique document ID
+        # 4. Generate a unique document ID and save the file
     document_id = str(uuid.uuid4())
-    save_file(document_id, contents)
+    file_path = save_file(document_id, contents)
 
-    # 5. Return metadata
+    # 5. Process the document: extract text, chunk it, and store embeddings
+    try:
+        text = extract_text_from_pdf(file_path)
+        chunks = chunk_text(text)
+        add_document_chunks(document_id, chunks)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"File was saved but processing failed: {str(e)}",
+        )
+
+    # 6. Return metadata
     return {
         "document_id": document_id,
         "filename": file.filename,
         "size_bytes": len(contents),
-        "status": "uploaded",
+        "chunks_created": len(chunks),
+        "status": "processed",
     }
 class QuestionRequest(BaseModel):
     question: str
@@ -61,3 +79,12 @@ async def ask(request: QuestionRequest):
         raise HTTPException(status_code=502, detail=str(e))
 
     return {"question": request.question, "answer": answer}
+
+class RagQuestionRequest(BaseModel):
+    question: str
+
+@app.post("/documents/ask")
+async def ask_document_question(request: RagQuestionRequest):
+    retrieved_chunks = search_similar_chunks(request.question, k=3)
+    result = answer_with_context(request.question, retrieved_chunks)
+    return result
