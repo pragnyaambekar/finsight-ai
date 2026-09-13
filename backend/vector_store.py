@@ -27,3 +27,7 @@ def add_document_chunks(document_id: str, chunks: list[str]) -> None:
 def search_similar_chunks(query: str, k: int = 3):
     """Return the k most relevant chunks for a given query."""
     return get_vector_store().similarity_search(query, k=k)
+
+def get_retriever(k: int = 3):
+    """Return a LangChain retriever backed by the Chroma vector store."""
+    return get_vector_store().as_retriever(search_kwargs={"k": k})

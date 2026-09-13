@@ -6,7 +6,7 @@ from llm_client import ask_llm
 from vector_store import search_similar_chunks, add_document_chunks
 from llm_client import answer_with_context
 from document_processor import extract_text_from_pdf, chunk_text
-
+from rag_chain import rag_chain
 
 
 
@@ -85,6 +85,5 @@ class RagQuestionRequest(BaseModel):
 
 @app.post("/documents/ask")
 async def ask_document_question(request: RagQuestionRequest):
-    retrieved_chunks = search_similar_chunks(request.question, k=3)
-    result = answer_with_context(request.question, retrieved_chunks)
+    result = rag_chain.invoke(request.question)
     return result
