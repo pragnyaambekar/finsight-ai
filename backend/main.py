@@ -7,7 +7,7 @@ from vector_store import search_similar_chunks, add_document_chunks
 from llm_client import answer_with_context
 from document_processor import extract_text_from_pdf, chunk_text
 from rag_chain import rag_chain
-
+from agent import agent
 
 
 app = FastAPI(title="FinSight AI", version="0.1.0") 
@@ -87,3 +87,19 @@ class RagQuestionRequest(BaseModel):
 async def ask_document_question(request: RagQuestionRequest):
     result = rag_chain.invoke(request.question)
     return result
+
+class AgentQuestionRequest(BaseModel):
+    question: str
+    document_id: str | None = None
+
+@app.post("/agent/ask")
+async def ask_agent(request: AgentQuestionRequest):
+    question = request.question
+    if request.document_id:
+        question += f" (document_id: {request.document_id})"
+
+    result = agent.invoke({"messages": [{"role": "user", "content": question}]})
+
+    final_message = result["messages"][-1]
+    return {"answer": final_message.content}
+    # return {"all_messages": [str(m) for m in result["messages"]]}
