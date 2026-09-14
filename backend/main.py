@@ -1,13 +1,15 @@
 import uuid
 from fastapi import FastAPI, UploadFile, HTTPException
 import fastapi
+from fastapi.responses import StreamingResponse
 from storage import save_file
 from pydantic import BaseModel
 from llm_client import ask_llm
 from vector_store import list_documents, search_similar_chunks, add_document_chunks
 from llm_client import answer_with_context
 from document_processor import extract_text_from_pdf, chunk_text
-from rag_chain import rag_chain
+from rag_chain import rag_chain, format_docs, llm, retriever
+from prompts import rag_prompt
 from agent import agent
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -93,6 +95,18 @@ class RagQuestionRequest(BaseModel):
 async def ask_document_question(request: RagQuestionRequest):
     result = rag_chain.invoke(request.question)
     return result
+
+async def stream_rag_answer(question: str):
+    docs = retriever.invoke(question)
+    context = format_docs(docs)
+    prompt_value = rag_prompt.invoke({"context": context, "question": question})
+
+    async for chunk in llm.astream(prompt_value):
+        yield chunk.content
+
+@app.post("/documents/ask-stream")
+async def ask_document_question_stream(request: RagQuestionRequest):
+    return StreamingResponse(stream_rag_answer(request.question), media_type="text/plain")
 
 class AgentQuestionRequest(BaseModel):
     question: str

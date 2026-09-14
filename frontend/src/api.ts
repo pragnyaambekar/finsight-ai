@@ -52,3 +52,29 @@ export async function askAgent(question: string) {
 
   return response.json();
 }
+
+export async function askDocumentsStream(
+  question: string,
+  onChunk: (text: string) => void
+) {
+  const response = await fetch(`${API_BASE_URL}/documents/ask-stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question }),
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error("Request failed");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const text = decoder.decode(value, { stream: true });
+    onChunk(text);
+  }
+}

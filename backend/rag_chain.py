@@ -1,7 +1,6 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_anthropic import ChatAnthropic
-
 from vector_store import get_retriever
 from prompts import rag_prompt
 from llm_client import MODEL
