@@ -34,8 +34,8 @@ export function DocumentUpload({ onUploadComplete }: { onUploadComplete: () => v
     <div className="rounded-2xl border border-border bg-surface p-5 shadow-card">
       <h2 className="mb-3 text-base font-semibold text-ink">Upload a Document</h2>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <label className="group flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border-strong bg-paper px-4 py-3 transition-colors hover:border-amber hover:bg-amber-wash/40">
+      <div className="flex flex-col gap-3">
+        <label className="group flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border-strong bg-paper px-4 py-3 transition-colors hover:border-amber hover:bg-amber-wash/40">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-wash text-amber-hover">
             <svg className="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 101.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614z" />
@@ -58,7 +58,7 @@ export function DocumentUpload({ onUploadComplete }: { onUploadComplete: () => v
         <button
           onClick={handleUpload}
           disabled={!selectedFile || isUploading}
-          className="shrink-0 rounded-xl bg-ink px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="w-full rounded-xl bg-ink px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isUploading ? "Uploading…" : "Upload"}
         </button>
