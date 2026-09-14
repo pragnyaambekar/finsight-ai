@@ -3,7 +3,7 @@ from fastapi import FastAPI, UploadFile, HTTPException
 from storage import save_file
 from pydantic import BaseModel
 from llm_client import ask_llm
-from vector_store import search_similar_chunks, add_document_chunks
+from vector_store import list_documents, search_similar_chunks, add_document_chunks
 from llm_client import answer_with_context
 from document_processor import extract_text_from_pdf, chunk_text
 from rag_chain import rag_chain
@@ -103,3 +103,7 @@ async def ask_agent(request: AgentQuestionRequest):
     final_message = result["messages"][-1]
     return {"answer": final_message.content}
     # return {"all_messages": [str(m) for m in result["messages"]]}
+
+@app.get("/documents")
+async def get_documents():
+    return {"document_ids": list_documents()}
