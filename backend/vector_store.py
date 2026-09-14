@@ -17,9 +17,12 @@ def get_vector_store() -> Chroma:
     )
 
 
-def add_document_chunks(document_id: str, chunks: list[str]) -> None:
-    """Embed and store chunks for a given document, tagged with its document_id."""
-    metadatas = [{"document_id": document_id, "chunk_index": i} for i in range(len(chunks))]
+def add_document_chunks(document_id: str, chunks: list[str], filename: str) -> None:
+    """Embed and store chunks for a given document, tagged with its document_id and filename."""
+    metadatas = [
+        {"document_id": document_id, "chunk_index": i, "filename": filename}
+        for i in range(len(chunks))
+    ]
     ids = [f"{document_id}_{i}" for i in range(len(chunks))]
     get_vector_store().add_texts(texts=chunks, metadatas=metadatas, ids=ids)
 
@@ -42,10 +45,16 @@ def get_full_document_text(document_id: str) -> str:
 
     return "\n\n".join(text for _, text in chunks_with_index)
 
-def list_documents() -> list[str]:
-    """Return a list of all distinct document_ids currently stored."""
+def list_documents() -> list[dict]:
+    """Return a list of {document_id, filename} for all distinct documents currently stored."""
     store = get_vector_store()
     results = store.get()
-    document_ids = {metadata["document_id"] for metadata in results["metadatas"]}
-    return list(document_ids)
+
+    seen = {}
+    for metadata in results["metadatas"]:
+        doc_id = metadata["document_id"]
+        if doc_id not in seen:
+            seen[doc_id] = metadata.get("filename", "Unknown")
+
+    return [{"document_id": doc_id, "filename": filename} for doc_id, filename in seen.items()]
 

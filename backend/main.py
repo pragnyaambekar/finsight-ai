@@ -1,5 +1,6 @@
 import uuid
 from fastapi import FastAPI, UploadFile, HTTPException
+import fastapi
 from storage import save_file
 from pydantic import BaseModel
 from llm_client import ask_llm
@@ -8,10 +9,15 @@ from llm_client import answer_with_context
 from document_processor import extract_text_from_pdf, chunk_text
 from rag_chain import rag_chain
 from agent import agent
-
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="FinSight AI", version="0.1.0") 
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 ALLOWED_CONTENT_TYPE = "application/pdf"
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
 
@@ -53,7 +59,7 @@ async def upload_document(file: UploadFile):
     try:
         text = extract_text_from_pdf(file_path)
         chunks = chunk_text(text)
-        add_document_chunks(document_id, chunks)
+        add_document_chunks(document_id, chunks, file.filename)
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -106,4 +112,4 @@ async def ask_agent(request: AgentQuestionRequest):
 
 @app.get("/documents")
 async def get_documents():
-    return {"document_ids": list_documents()}
+    return {"documents": list_documents()}

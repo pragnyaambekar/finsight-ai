@@ -26,12 +26,12 @@ def get_full_document(document_id: str) -> str:
 @tool
 def list_available_documents() -> str:
     """
-    List the document_ids of all documents currently available to search or retrieve.
-    Use this first if you don't already know a specific document_id and need one
-    to answer the question.
+    List the document_ids of all documents currently available.
     """
     docs = list_documents()
-    return "\n".join(docs) if docs else "No documents have been uploaded yet."
+    if not docs:
+        return "No documents have been uploaded yet."
+    return "\n".join(f"{doc['document_id']} ({doc['filename']})" for doc in docs)
 
 @tool
 def calculate_sum(numbers: list[float]) -> float:
